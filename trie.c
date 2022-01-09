@@ -4,39 +4,82 @@
 
 Node *createNode(void) {
 
-    Node *current = (Node*)malloc(sizeof(Node));
-    current->leaf = false;
-    for (int i = 0; i < ALPHABET; i++) current->children[i] = NULL;
+    Node *new = (Node*)malloc(sizeof(Node));
+    new->leaf = false;
+    new->sibling = NULL;
+    new->fChild = NULL;
 
-    return current;
+    return new;
+}
+
+List *createList(void) {
+    List *new = (List*)malloc(sizeof(List));
+    new->rnNode = NULL;
+    new->value = '\0';
+
+    return new;
 }
 
 void put(Node *root, const char *word) {
-    Node *current = root;
 
-    if(word == NULL || strlen(word) == 0) return;
+    Node *current = createNode();
+    current = root;
+
+    if (word == NULL || strlen(word) == 0) return;
 
     for (int i = 0; i < (int) strlen(word); i++) {
-        int place = word[i] - 'a';
-        if (!current->children[place]) current->children[place] = createNode();
-        current = current->children[place];
+
+        if (!current->fChild) {
+            current->fChild = createList();
+            current->fChild->rnNode = createNode();
+            current->fChild->value = word[i];
+        }
+
+        Node *next = current->fChild->rnNode;
+
+        while (current->fChild != NULL && current->fChild->value != word[i]) {
+            if (next->sibling != NULL) next = next->sibling->rnNode ;
+            else {
+                next->sibling = createList();
+                next->sibling->rnNode = createNode();
+                next->sibling->value = word[i];
+            }
+            current = next;
+        }
+        current = next;
     }
 
     current->leaf = true;
 }
 
 bool search(Node *root, const char *word) {
-    Node *current = root;
 
-    if(word == NULL || strlen(word) == 0) return false;
+    Node *current = createNode();
+    current = root;
+
+    if (word == NULL || strlen(word) == 0) return false;
 
     for (int i = 0; i < (int) strlen(word); i++) {
-        int place = word[i] - 'a';
-        if (!current->children[place]) {
+
+        if (!current->fChild) {
             printf("Word '%s' not found :(\n", word);
             return false;
         }
-        current = current->children[place];
+
+        if (current->fChild->value != word[i]) {
+
+            Node *next = current->fChild->rnNode;
+            current = next;
+            while (current->sibling != NULL && current->sibling->value != word[i]) {
+                current = current->sibling->rnNode;
+            }
+            if (!current->sibling) {
+                printf("Word '%s' not found :(\n", word);
+                return false;
+            }
+            current = current->sibling->rnNode;
+        }
+        else current = current->fChild->rnNode;
     }
 
     if (current->leaf) {
@@ -50,57 +93,63 @@ bool search(Node *root, const char *word) {
 }
 
 void delete(Node *root, const char *word) {
-    Node *current = root;
-    Node *lastNode = createNode();
-    int lastLetter = 0;
 
-    if(word == NULL || strlen(word) == 0) return;
+    Node *current = createNode();
+    current = root;
+    Node *lastNode = createNode();
+    char lastLetter = '\n';
+
+    if (word == NULL || strlen(word) == 0) return;
 
     for (int i = 0; i < (int) strlen(word); i++) {
-        int place = word[i] - 'a';
-        if (!current->children[place]) return;
-        if (current->leaf || children(current) > 1) {
-            lastNode = current;
-            lastLetter = place;
+
+        if (!current->fChild) return;
+
+        lastNode = current;
+
+        if (current->fChild->value != word[i]) {
+
+            Node *next = current->fChild->rnNode;
+            current = next;
+            while (current->sibling != NULL && current->sibling->value != word[i]) {
+                current = current->sibling->rnNode;
+               if (lastLetter == word[i-1]) {
+                   lastLetter = '\n';
+                   lastNode = lastNode->fChild->rnNode;
+               } else lastNode = lastNode->sibling->rnNode;
+            }
+            if (!current->sibling) return;
+            lastNode = lastNode->fChild->rnNode;
+            current = current->sibling->rnNode;
         }
-        current = current->children[place];
+        else {
+            lastLetter = current->fChild->value;
+            current = current->fChild->rnNode;
+        }
+
     }
 
-    if (!current->leaf) return;
-    if (anyChildren(current)) {
-        current->leaf = false;
-    } else {
-        lastNode->children[lastLetter] = NULL;
-    }
+    if (current->leaf && current->fChild) current->leaf = false;
+    else if (current->leaf && !current->sibling) lastNode->fChild = NULL;
+    else if (current->leaf && current->sibling) lastNode->fChild = current->sibling;
+    else if (!current->leaf) return;
 
 }
 
 void print(Node* root, char printWord[], int letter, FILE *output_file) {
-    if (root->leaf) {
+
+    Node *current = createNode();
+    current = root;
+
+    if (current->leaf) {
         printWord[letter] = '\n';
-        printWord[letter + 1] = '\0';
         fputs(printWord, output_file);
     }
 
-    for (int i = 0; i < ALPHABET; i++) {
-        if (root->children[i]) {
-            printWord[letter] = i + 'a';
-            print(root->children[i], printWord, letter + 1, output_file);
-        }
-    }
-}
-
-int children(Node *root) {
-    int amount = 0;
-    for (int i = 0; i < ALPHABET; i++) {
-        if (root->children[i]) amount++;
-    }
-    return amount;
-}
-
-bool anyChildren(Node *root) {
-    for (int i = 0; i < ALPHABET; i++)
-        if (root->children[i])
-            return true;
-    return false;
+    if (current->fChild) {
+        printWord[letter] = current->fChild->value;
+        Node *next = current->fChild->rnNode;
+        current = next;
+        print(current, printWord, letter + 1, output_file);
+    } else return;
 }

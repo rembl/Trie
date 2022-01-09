@@ -1,12 +1,15 @@
 #include "test.h"
 
 void testPut() {
-    char word[] = "ball";
+    char word[] = "bal";
+    char word2[] = "he";
     Node *root = createNode();
 
     put(root, word);
+    put(root, word2);
 
-    assert(search(root, "ball"));
+    assert(search(root, "he"));
+    assert(search(root, "bal"));
     assert(!search(root, "balls"));
 }
 
@@ -31,8 +34,8 @@ void testDelete() {
     assert(search(root, "ball"));
     assert(search(root, "hello"));
     delete(root, "ball");
-    assert(!search(root, "ball"));
     assert(search(root, "hello"));
+    assert(!search(root, "ball"));
 }
 
 void testAll() {

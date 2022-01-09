@@ -9,15 +9,28 @@ int main(int argc, char *argv[]) {
         printf("Bad luck, wrong command line arguments");
         return 1;
     }
-
+    
     char **words = (char**)malloc(sizeof(char*));
     FILE *input_file = fopen(argv[1], "r");
+    char ch;
     int n = 0;
     int length = 0;
 
     while (!feof(input_file)) {
-        words[n] = (char*)malloc(sizeof(char));
-        fscanf(input_file, "%s", words[n]);
+
+        ch = (char) fgetc(input_file);
+        char *single = (char*)malloc(sizeof(char));
+        int m = 0;
+
+        while(ch != '\n' && ch != ' ' && ch != EOF) {
+            single[m] = ch;
+            m++;
+            single = (char*)realloc(single, sizeof(char) * (m + 1));
+            ch = (char) fgetc(input_file);
+        }
+
+        words[n] = (char*)malloc(sizeof(char) * strlen(single));
+        words[n] = single;
         if ((int) strlen(words[n]) > length) length = (int) strlen(words[n]);
         n++;
         words = (char**)realloc(words, sizeof(char*) * (n + 1));

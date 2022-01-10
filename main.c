@@ -35,6 +35,7 @@ int main(int argc, char *argv[]) {
         n++;
         words = (char**)realloc(words, sizeof(char*) * (n + 1));
     }
+
     fclose(input_file);
 
     FILE *output_file = fopen(argv[2], "w");

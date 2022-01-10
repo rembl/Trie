@@ -130,8 +130,14 @@ void delete(Node *root, const char *word) {
     }
 
     if (current->leaf && current->fChild) current->leaf = false;
-    else if (current->leaf && !current->sibling) lastNode->fChild = NULL;
-    else if (current->leaf && current->sibling) lastNode->fChild = current->sibling;
+    else if (current->leaf && !current->sibling) {
+        free(lastNode->fChild->rnNode);
+        lastNode->fChild = NULL;
+    }
+    else if (current->leaf && current->sibling) {
+        free(lastNode->fChild->rnNode);
+        lastNode->fChild = current->sibling;
+    }
     else if (!current->leaf) return;
 
 }
@@ -140,16 +146,38 @@ void print(Node* root, char printWord[], int letter, FILE *output_file) {
 
     Node *current = createNode();
     current = root;
-
-    if (current->leaf) {
-        printWord[letter] = '\n';
-        fputs(printWord, output_file);
-    }
+    char currentLetter;
 
     if (current->fChild) {
-        printWord[letter] = current->fChild->value;
-        Node *next = current->fChild->rnNode;
-        current = next;
-        print(current, printWord, letter + 1, output_file);
-    } else return;
+        currentLetter = current->fChild->value;
+        current = current->fChild->rnNode;
+        recurse(current, currentLetter, printWord, letter, output_file);
+    } else fputs("The trie is empty ;(", output_file);
+    return;
+}
+
+void recurse(Node *current, char currentLetter, char *printWord, int letter, FILE *output_file) {
+
+    // сосед
+    if (current->sibling) recurse(current->sibling->rnNode, current->sibling->value, printWord, letter, output_file);
+
+    // добавление буквы
+    printWord[letter] = currentLetter;
+
+    // конец
+    if (current->leaf) {
+        fputs(printWord, output_file);
+        fputs("\n", output_file);
+    }
+
+    // ребенок
+    if (current->fChild) {
+        currentLetter = current->fChild->value;
+        current = current->fChild->rnNode;
+        recurse(current, currentLetter, printWord, letter + 1, output_file);
+    }
+
+    // удаление буквы
+    printWord[letter] = ' ';
+
 }

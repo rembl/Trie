@@ -14,7 +14,6 @@ int main(int argc, char *argv[]) {
     FILE *input_file = fopen(argv[1], "r");
     char ch;
     int n = 0;
-    int length = 0;
 
     while (!feof(input_file)) {
 
@@ -31,7 +30,6 @@ int main(int argc, char *argv[]) {
 
         words[n] = (char*)malloc(sizeof(char) * strlen(single));
         words[n] = single;
-        if ((int) strlen(words[n]) > length) length = (int) strlen(words[n]);
         n++;
         words = (char**)realloc(words, sizeof(char*) * (n + 1));
     }
@@ -39,7 +37,7 @@ int main(int argc, char *argv[]) {
     fclose(input_file);
 
     FILE *output_file = fopen(argv[2], "w");
-    char *printWord = (char*)malloc(length * sizeof(char*));
+    char *printWord = (char*)malloc(sizeof(char*));
 
     Node *root = createNode();
     for (int i = 0; i < n; i++) put(root, words[i]);

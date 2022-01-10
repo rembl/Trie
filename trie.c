@@ -43,6 +43,7 @@ void put(Node *root, const char *word) {
                 next->sibling = createList();
                 next->sibling->rnNode = createNode();
                 next->sibling->value = word[i];
+                next = next->sibling->rnNode;
             }
             current = next;
         }
@@ -162,6 +163,7 @@ void recurse(Node *current, char currentLetter, char *printWord, int letter, FIL
     if (current->sibling) recurse(current->sibling->rnNode, current->sibling->value, printWord, letter, output_file);
 
     // добавление буквы
+    printWord[letter] = *(char*)malloc(sizeof(char));
     printWord[letter] = currentLetter;
 
     // конец
@@ -179,5 +181,4 @@ void recurse(Node *current, char currentLetter, char *printWord, int letter, FIL
 
     // удаление буквы
     printWord[letter] = ' ';
-
 }

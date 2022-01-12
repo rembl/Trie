@@ -21,5 +21,6 @@ Node *createNode(void);
 void put(Node *root, const char *word);
 bool search(Node *root, const char *word);
 void delete(Node *root, const char *word);
-void print(Node* root, char printWord[], int letter, FILE *output_file);
+void delrec(Node *pNode, const char *word, Node *pNode1, int i, int counter, int myLetter);
+void print(Node* root, FILE *output_file);
 void recurse(Node *current, char currentLetter, char *printWord, int letter, FILE *output_file);

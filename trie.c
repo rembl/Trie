@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "trie.h"
 
+
 Node *createNode(void) {
 
     Node *new = (Node*)malloc(sizeof(Node));
@@ -20,10 +21,7 @@ List *createList(void) {
     return new;
 }
 
-void put(Node *root, const char *word) {
-
-    Node *current = createNode();
-    current = root;
+void put(Node *current, const char *word) {
 
     if (word == NULL || strlen(word) == 0) return;
 
@@ -37,15 +35,15 @@ void put(Node *root, const char *word) {
 
         Node *next = current->fChild->rnNode;
 
-        while (current->fChild != NULL && current->fChild->value != word[i]) {
-            if (next->sibling != NULL) next = next->sibling->rnNode ;
+        if (current->fChild != NULL && current->fChild->value != word[i]) {
+            while (next->sibling != NULL && next->sibling->value != word[i]) next = next->sibling->rnNode;
+            if (next->sibling != NULL) next = next->sibling->rnNode;
             else {
                 next->sibling = createList();
                 next->sibling->rnNode = createNode();
                 next->sibling->value = word[i];
                 next = next->sibling->rnNode;
             }
-            current = next;
         }
         current = next;
     }
@@ -53,10 +51,7 @@ void put(Node *root, const char *word) {
     current->leaf = true;
 }
 
-bool search(Node *root, const char *word) {
-
-    Node *current = createNode();
-    current = root;
+bool search(Node *current, const char *word) {
 
     if (word == NULL || strlen(word) == 0) return false;
 
@@ -93,68 +88,80 @@ bool search(Node *root, const char *word) {
     }
 }
 
-void delete(Node *root, const char *word) {
-
-    Node *current = createNode();
-    current = root;
-    Node *lastNode = createNode();
-    char lastLetter = '\n';
+void delete(Node *current, const char *word) {
 
     if (word == NULL || strlen(word) == 0) return;
+    if (!search(current, word)) return;
 
-    for (int i = 0; i < (int) strlen(word); i++) {
+    Node *prevNode = createNode();
+    int flag = 0; // если 1, то prevNode - родитель, елси 2, то prevNode - сосед
+    int counter = 0;
 
-        if (!current->fChild) return;
+    if (current->fChild->value != word[0]) {
 
-        lastNode = current;
-
-        if (current->fChild->value != word[i]) {
-
-            Node *next = current->fChild->rnNode;
-            current = next;
-            while (current->sibling != NULL && current->sibling->value != word[i]) {
-                current = current->sibling->rnNode;
-               if (lastLetter == word[i-1]) {
-                   lastLetter = '\n';
-                   lastNode = lastNode->fChild->rnNode;
-               } else lastNode = lastNode->sibling->rnNode;
-            }
-            if (!current->sibling) return;
-            lastNode = lastNode->fChild->rnNode;
+        Node *next = current->fChild->rnNode;
+        current = next;
+        while (current->sibling->value != word[0]) {
             current = current->sibling->rnNode;
         }
-        else {
-            lastLetter = current->fChild->value;
-            current = current->fChild->rnNode;
+        current = current->sibling->rnNode;
+    }
+    else current = current->fChild->rnNode;
+    counter++;
+
+    delrec(current, word, prevNode, flag, counter, 1);
+    // myLetter - если 1, то мы в букве искомого слова, если 0 - нет
+}
+
+void delrec(Node *current, const char *word, Node *prevNode, int flag, int counter, int myLetter) {
+
+    //находим слово
+    if (counter - (int) strlen(word) < 0) {
+        if (myLetter == 1) {
+            if (current->fChild->value == word[counter]) delrec(current->fChild->rnNode, word, current, 1, counter + 1, 1);
+            else delrec(current->fChild->rnNode, word, current, 1, counter, 0);
         }
-
+        else
+            if (current->sibling->value == word[counter]) delrec(current->sibling->rnNode, word, current, 2, counter + 1, 1);
+            else delrec(current->sibling->rnNode, word, current, 2, counter, 0);
     }
 
-    if (current->leaf && current->fChild) current->leaf = false;
-    else if (current->leaf && !current->sibling) {
-        free(lastNode->fChild->rnNode);
-        lastNode->fChild = NULL;
+    //нет ребенка нет соседа
+    if (current->fChild == NULL && current->sibling == NULL) {
+        if (flag == 1) prevNode->fChild = NULL;
+        else prevNode->sibling = NULL;
+        free(current);
     }
-    else if (current->leaf && current->sibling) {
-        free(lastNode->fChild->rnNode);
-        lastNode->fChild = current->sibling;
+
+    //нет реьенка есть  сосед
+    else if (current->fChild == NULL && current->sibling != NULL) {
+        if (flag == 1) prevNode->fChild = current->sibling;
+        else prevNode->sibling = current->sibling;
+        free(current);
     }
-    else if (!current->leaf) return;
+
+    //есть ребенок
+    else if (current->fChild != NULL && counter == (int) strlen(word)) {
+        if (flag == 1 && prevNode->fChild->value == word[strlen(word) - 1]) current->leaf = false;
+        if (flag == 2 && prevNode->sibling->value == word[strlen(word) - 1]) current->leaf = false;
+    }
+
 
 }
 
-void print(Node* root, char printWord[], int letter, FILE *output_file) {
+void print(Node* current, FILE *output_file) {
 
-    Node *current = createNode();
-    current = root;
     char currentLetter;
+    char *printWord = (char*)malloc(sizeof(char*));
+    int letter = 0;
 
     if (current->fChild) {
         currentLetter = current->fChild->value;
         current = current->fChild->rnNode;
         recurse(current, currentLetter, printWord, letter, output_file);
     } else fputs("The trie is empty ;(", output_file);
-    return;
+
+    free(printWord);
 }
 
 void recurse(Node *current, char currentLetter, char *printWord, int letter, FILE *output_file) {

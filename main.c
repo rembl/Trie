@@ -37,16 +37,16 @@ int main(int argc, char *argv[]) {
     fclose(input_file);
 
     FILE *output_file = fopen(argv[2], "w");
-    char *printWord = (char*)malloc(sizeof(char*));
 
     Node *root = createNode();
     for (int i = 0; i < n; i++) put(root, words[i]);
 
-    print(root, printWord, 0, output_file);
+    delete(root, "23456");
+
+    print(root, output_file);
 
     fclose(output_file);
     free(words);
-    free(printWord);
 
     return 0;
 }

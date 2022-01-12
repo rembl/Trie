@@ -164,29 +164,30 @@ void print(Node* current, FILE *output_file) {
     if (current->fChild) {
         currentLetter = current->fChild->value;
         current = current->fChild->rnNode;
-        recurse(current, currentLetter, printWord, &letter, &size, output_file);
+        recurse(current, currentLetter, &printWord, letter, &size, output_file);
     } else fputs("The trie is empty ;(", output_file);
 
     free(printWord);
 }
 
-void recurse(Node *current, char currentLetter, char *printWord, int *letter, int *size, FILE *output_file) {
+void recurse(Node *current, char currentLetter, char **printWord, int letter, int *size, FILE *output_file) {
 
     // сосед
     if (current->sibling) recurse(current->sibling->rnNode, current->sibling->value, printWord, letter, size, output_file);
 
     // добавление буквы
-    if (*letter >= *size - 1) {
+    if (*size == 1) {
         *size = *size + 1;
-        printWord = (char*) realloc(printWord, sizeof(char) * *size);
+        *printWord = (char*) malloc(sizeof(char));
     }
-    printWord[*letter] = currentLetter;
-    *letter = *letter + 1;
+    if (letter >= *size - 1) *printWord = realloc(*printWord, sizeof(char) * *size);
+    (*printWord)[letter] = currentLetter;
+
 
     // конец
     if (current->leaf) {
-        printWord[*letter] = 0;
-        fputs(printWord, output_file);
+        (*printWord)[letter + 1] = 0;
+        fputs(*printWord, output_file);
         fputs("\n", output_file);
     }
 
@@ -194,10 +195,9 @@ void recurse(Node *current, char currentLetter, char *printWord, int *letter, in
     if (current->fChild) {
         currentLetter = current->fChild->value;
         current = current->fChild->rnNode;
-        recurse(current, currentLetter, printWord, letter, size, output_file);
+        recurse(current, currentLetter, printWord, letter + 1, size, output_file);
     }
 
     // удаление буквы
-    printWord[*letter] = ' ';
-    *letter = *letter - 1;
+    (*printWord)[letter] = ' ';
 }

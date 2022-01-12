@@ -25,4 +25,4 @@ bool search(Node *root, const char *word);
 void delete(Node *root, const char *word);
 void delrec(int length, Node *pNode, const char *word, Node *pNode1, enum flag, int counter, enum myLetter);
 void print(Node* root, FILE *output_file);
-void recurse(Node *current, char currentLetter, char *printWord, int *letter, int *size, FILE *output_file);
+void recurse(Node *current, char currentLetter, char **printWord, int letter, int *size, FILE *output_file);

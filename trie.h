@@ -16,8 +16,8 @@ typedef struct List {
     struct Node *rnNode;
 } List;
 
-enum myLetter { YES, NO } myLetter;
-enum flag { PARENT, SIBLING} flag;
+enum myLetter { YES, NO };
+enum flag { PARENT, SIBLING};
 
 
 Node *createNode(void);

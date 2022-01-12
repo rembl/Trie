@@ -96,6 +96,8 @@ void delete(Node *current, const char *word) {
     Node *root = current;
     Node *prevNode = createNode();
     int counter = 0;
+    enum myLetter myl = YES;
+    enum flag fl = PARENT;
 
     if (current->fChild->value != word[0]) {
 
@@ -109,16 +111,16 @@ void delete(Node *current, const char *word) {
     else current = current->fChild->rnNode;
     counter++;
 
-    delrec(root, current, word, prevNode, PARENT, counter, YES);
+    delrec(root, current, word, prevNode, fl, counter, myl);
     // myLetter - если 1, то мы в букве искомого слова, если 0 - нет
     // flag - если 1, то prevNode - родитель, елси 2, то prevNode - сосед
 }
 
-void delrec(Node *root, Node *current, const char *word, Node *prevNode, enum flag, int counter, enum myLetter) {
+void delrec(Node *root, Node *current, const char *word, Node *prevNode, enum flag fl, int counter, enum myLetter myl) {
 
     //находим слово
     if (counter - (int) strlen(word) < 0) {
-        if (myLetter == YES) {
+        if (myl == YES) {
             if (current->fChild->value == word[counter]) delrec(root, current->fChild->rnNode, word, current, PARENT, counter + 1, YES);
             else delrec(root, current->fChild->rnNode, word, current, PARENT, counter, NO);
         }
@@ -133,14 +135,14 @@ void delrec(Node *root, Node *current, const char *word, Node *prevNode, enum fl
 
     //нет ребенка нет соседа
     if (current->fChild == NULL && current->sibling == NULL) {
-        if (flag == PARENT) prevNode->fChild = NULL;
+        if (fl == PARENT) prevNode->fChild = NULL;
         else prevNode->sibling = NULL;
         free(current);
     }
 
     //нет ребенка есть сосед
     else if (current->fChild == NULL && current->sibling != NULL) {
-        if (flag == PARENT) {
+        if (fl == PARENT) {
             if (prevNode->sibling == NULL && prevNode->fChild == NULL) root->fChild = current->sibling;
             else prevNode->fChild = current->sibling;
         }
@@ -150,11 +152,9 @@ void delrec(Node *root, Node *current, const char *word, Node *prevNode, enum fl
 
     //есть ребенок
     else if (current->fChild != NULL && counter == (int) strlen(word)) {
-        if (flag == PARENT && prevNode->fChild->value == word[strlen(word) - 1]) current->leaf = false;
-        if (flag == SIBLING && prevNode->sibling->value == word[strlen(word) - 1]) current->leaf = false;
+        if (fl == PARENT && prevNode->fChild->value == word[strlen(word) - 1]) current->leaf = false;
+        if (fl == SIBLING && prevNode->sibling->value == word[strlen(word) - 1]) current->leaf = false;
     }
-
-
 }
 
 void print(Node* current, FILE *output_file) {

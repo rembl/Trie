@@ -148,7 +148,7 @@ void delrec(int length, Node *current, const char *word, Node *prevNode, enum fl
     }
 
     //есть ребенок
-    else if (current->fChild != NULL && counter == (int) strlen(word)) {
+    else if (current->fChild != NULL && counter == length) {
         if (fl == PARENT && prevNode->fChild->value == word[strlen(word) - 1]) current->leaf = false;
         if (fl == SIBLING && prevNode->sibling->value == word[strlen(word) - 1]) current->leaf = false;
     }

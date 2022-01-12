@@ -42,6 +42,7 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < n; i++) put(root, words[i]);
 
     delete(root, "23456");
+    search(root, "23456");
 
     print(root, output_file);
 

@@ -93,8 +93,8 @@ void delete(Node *current, const char *word) {
     if (word == NULL || strlen(word) == 0) return;
     if (!search(current, word)) return;
 
+    Node *root = current;
     Node *prevNode = createNode();
-    int flag = 0; // если 1, то prevNode - родитель, елси 2, то prevNode - сосед
     int counter = 0;
 
     if (current->fChild->value != word[0]) {
@@ -109,41 +109,49 @@ void delete(Node *current, const char *word) {
     else current = current->fChild->rnNode;
     counter++;
 
-    delrec(current, word, prevNode, flag, counter, 1);
+    delrec(root, current, word, prevNode, PARENT, counter, YES);
     // myLetter - если 1, то мы в букве искомого слова, если 0 - нет
+    // flag - если 1, то prevNode - родитель, елси 2, то prevNode - сосед
 }
 
-void delrec(Node *current, const char *word, Node *prevNode, int flag, int counter, int myLetter) {
+void delrec(Node *root, Node *current, const char *word, Node *prevNode, enum flag, int counter, enum myLetter) {
 
     //находим слово
     if (counter - (int) strlen(word) < 0) {
-        if (myLetter == 1) {
-            if (current->fChild->value == word[counter]) delrec(current->fChild->rnNode, word, current, 1, counter + 1, 1);
-            else delrec(current->fChild->rnNode, word, current, 1, counter, 0);
+        if (myLetter == YES) {
+            if (current->fChild->value == word[counter]) delrec(root, current->fChild->rnNode, word, current, PARENT, counter + 1, YES);
+            else delrec(root, current->fChild->rnNode, word, current, PARENT, counter, NO);
         }
-        else
-            if (current->sibling->value == word[counter]) delrec(current->sibling->rnNode, word, current, 2, counter + 1, 1);
-            else delrec(current->sibling->rnNode, word, current, 2, counter, 0);
+        else {
+            while (current->sibling->value != word[counter]) {
+                prevNode = current;
+                current = current->sibling->rnNode;
+            }
+            delrec(root, current->sibling->rnNode, word, current, SIBLING, counter + 1, YES);
+        }
     }
 
     //нет ребенка нет соседа
     if (current->fChild == NULL && current->sibling == NULL) {
-        if (flag == 1) prevNode->fChild = NULL;
+        if (flag == PARENT) prevNode->fChild = NULL;
         else prevNode->sibling = NULL;
         free(current);
     }
 
-    //нет реьенка есть  сосед
+    //нет ребенка есть сосед
     else if (current->fChild == NULL && current->sibling != NULL) {
-        if (flag == 1) prevNode->fChild = current->sibling;
+        if (flag == PARENT) {
+            if (prevNode->sibling == NULL && prevNode->fChild == NULL) root->fChild = current->sibling;
+            else prevNode->fChild = current->sibling;
+        }
         else prevNode->sibling = current->sibling;
         free(current);
     }
 
     //есть ребенок
     else if (current->fChild != NULL && counter == (int) strlen(word)) {
-        if (flag == 1 && prevNode->fChild->value == word[strlen(word) - 1]) current->leaf = false;
-        if (flag == 2 && prevNode->sibling->value == word[strlen(word) - 1]) current->leaf = false;
+        if (flag == PARENT && prevNode->fChild->value == word[strlen(word) - 1]) current->leaf = false;
+        if (flag == SIBLING && prevNode->sibling->value == word[strlen(word) - 1]) current->leaf = false;
     }
 
 
